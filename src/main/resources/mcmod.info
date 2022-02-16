@@ -1,0 +1,15 @@
+[
+{
+  "modid": "nolocalizationconflict",
+  "name": "No Localization Conflict",
+  "description": "Avoid localization conflict",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["youyihj"],
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

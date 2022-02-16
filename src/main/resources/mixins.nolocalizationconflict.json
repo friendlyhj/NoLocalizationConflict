@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_8",
+  "package": "youyihj.nolocalizationconflict.mixins",
+  "minVersion": "0.7.11",
+  "target": "@env(INIT)",
+  "refmap": "mixins.nolocalizationconflict.refmap.json",
+  "priority": 0,
+  "mixins": [
+    "MixinBlock",
+    "MixinItem",
+    "MixinLanguageMap"
+  ],
+  "client": [
+    "MixinLocale"
+  ]
+}
