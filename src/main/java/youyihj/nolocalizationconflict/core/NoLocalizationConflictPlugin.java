@@ -5,12 +5,15 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.Mixins;
+import zone.rong.mixinbooter.IEarlyMixinLoader;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,27 +21,7 @@ import java.util.Map;
  */
 @IFMLLoadingPlugin.Name("no_localization_conflict_core")
 @IFMLLoadingPlugin.MCVersion("1.12.2")
-public class NoLocalizationConflictPlugin implements IFMLLoadingPlugin {
-    public NoLocalizationConflictPlugin() {
-        MixinBootstrap.init();
-        Mixins.addConfiguration("mixins.nolocalizationconflict.json");
-        LogManager.getLogger("no localization conflict mixins").info("init mixins");
-        CodeSource codeSource = this.getClass().getProtectionDomain().getCodeSource();
-        if (codeSource != null) {
-            URL location = codeSource.getLocation();
-            try {
-                File file = new File(location.toURI());
-                if (file.isFile()) {
-                    CoreModManager.getReparseableCoremods().remove(file.getName());
-                }
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-        } else {
-            LogManager.getLogger().warn("No CodeSource, if this is not a development environment we might run into problems!");
-            LogManager.getLogger().warn(this.getClass().getProtectionDomain());
-        }
-    }
+public class NoLocalizationConflictPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     @Override
     public String[] getASMTransformerClass() {
@@ -64,5 +47,10 @@ public class NoLocalizationConflictPlugin implements IFMLLoadingPlugin {
     @Override
     public String getAccessTransformerClass() {
         return null;
+    }
+
+    @Override
+    public List<String> getMixinConfigs() {
+        return Collections.singletonList("mixins.nolocalizationconflict.json");
     }
 }
