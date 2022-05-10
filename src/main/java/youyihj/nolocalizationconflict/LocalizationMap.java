@@ -3,107 +3,84 @@ package youyihj.nolocalizationconflict;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author youyihj
  */
 public class LocalizationMap extends AbstractMap<String, String> {
     private final ILocaleExtension locale;
-    private final Map<String, String> underlying = new HashMap<>();
-    private final Map<String, String> keyBasedMods = new HashMap<>();
-    private final Set<String> conflictKeys = new HashSet<>();
-    // {key: {mod: value}}
-    private final Map<String, Map<String, String>> conflictEntries = new HashMap<>();
-    private Object2BooleanArrayMap<String> keyBasedEnglish = new Object2BooleanArrayMap<>();
+    private final Map<String, LanguageEntry> english = new HashMap<>();
+    private final Map<String, LanguageEntry> localization = new HashMap<>();
 
     public LocalizationMap(ILocaleExtension locale) {
         this.locale = locale;
-        keyBasedEnglish.defaultReturnValue(true);
     }
 
     public LocalizationMap copy() {
         LocalizationMap copy = new LocalizationMap(locale);
-        copy.underlying.putAll(underlying);
-        Map<String, Map<String, String>> temp = new HashMap<>();
-        conflictEntries.forEach((mod, entry) -> temp.put(mod, new HashMap<>(entry)));
-        copy.conflictEntries.putAll(temp);
-        copy.conflictKeys.addAll(conflictKeys);
-        copy.keyBasedEnglish = keyBasedEnglish;
+        copy.english.putAll(this.english);
+        copy.localization.putAll(this.localization);
         return copy;
     }
 
     @Override
     public String put(String key, String value) {
-        String origin = underlying.put(key, value);
-        String mod = keyBasedMods.put(key, locale.getCurrentModifyingMod());
-        boolean isEnglish = locale.getLanguage().equals("en_us");
-        if (origin != null && !origin.equals(value) && keyBasedEnglish.getBoolean(key) == isEnglish) {
-            conflictKeys.add(key);
-            Map<String, String> entry = conflictEntries.computeIfAbsent(key, it -> new HashMap<>());
-            entry.put(locale.getCurrentModifyingMod(), value);
-            entry.put(mod, origin);
+        Map<String, LanguageEntry> entries = locale.isEnglish() ? english : localization;
+        LanguageEntry entry = entries.get(key);
+        if (entry == null) {
+            entries.put(key, new LanguageEntry(value, locale.getCurrentModifyingMod()));
+            return null;
         } else {
-            keyBasedEnglish.put(key, isEnglish);
+            entry.put(value, locale.getCurrentModifyingMod());
+            return entry.getDefaultValue();
         }
-        return origin;
     }
 
     @Override
     public void clear() {
-        underlying.clear();
-        conflictKeys.clear();
-        conflictEntries.clear();
-        keyBasedMods.clear();
+        english.clear();
+        localization.clear();
     }
 
     @Override
     public String get(Object k) {
-        if (k.getClass() != String.class) return "";
-        String key = (String) k;
-        if (!conflictKeys.contains(key)) {
-            return underlying.get(key);
-        }
-        String callerMod = NoLocalizationConflict.getCallerMod();
-        return Optional.of(conflictEntries).map(it -> it.get(k)).map(it -> it.get(callerMod)).orElseGet(() -> underlying.get(k));
+        LanguageEntry entry = localization.get(k);
+        if (entry == null) entry = english.get(k);
+        return entry == null ? null : entry.get();
     }
 
     public String getValueExplicitMod(String key, String mod) {
-        if (!conflictKeys.contains(key)) {
-            return underlying.get(key);
-        } else {
-            return Optional.of(conflictEntries).map(it -> it.get(key)).map(it -> it.get(mod)).orElseGet(() -> underlying.get(key));
-        }
+        LanguageEntry entry = localization.get(key);
+        if (entry == null) entry = english.get(key);
+        return entry == null ? null : entry.get(mod);
     }
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-        return underlying.entrySet();
+        return localization.entrySet().stream()
+            .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().getDefaultValue()))
+                .entrySet();
     }
 
     @Override
     public boolean containsKey(Object key) {
-        return underlying.containsKey(key);
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return underlying.containsValue(value) && conflictEntries.values().stream().anyMatch(it -> it.containsValue(value));
+        return localization.containsKey(key);
     }
 
     @Override
     public int size() {
-        return underlying.size();
+        return localization.size();
     }
 
     @Override
     public Collection<String> values() {
-        Set<String> values = new HashSet<>(underlying.values());
-        conflictEntries.values().forEach(it -> values.addAll(it.values()));
-        return values;
+        return localization.values().stream().map(LanguageEntry::getDefaultValue).collect(Collectors.toList());
     }
 
     @Override
     public Set<String> keySet() {
-        return underlying.keySet();
+        return localization.keySet();
     }
 }

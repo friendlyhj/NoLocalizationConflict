@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        maven { url = "https://files.minecraftforge.net/maven" }
+        maven { url = "https://maven.minecraftforge.net/" }
         maven {
             name = "sponge"
             url = "https://repo.spongepowered.org/maven"
@@ -17,7 +17,7 @@ apply plugin: 'org.spongepowered.mixin'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 
-version = "1.0"
+version = "1.1"
 group = "youyihj.nolocalizationconflict" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "NoLocalizationConflict"
 
