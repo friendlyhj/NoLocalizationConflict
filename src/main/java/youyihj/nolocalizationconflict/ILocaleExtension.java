@@ -8,7 +8,7 @@ import net.minecraft.client.resources.Locale;
 public interface ILocaleExtension {
     String getCurrentModifyingMod();
 
-    String getLanguage();
-
     Locale getSelf();
+
+    boolean isEnglish();
 }
