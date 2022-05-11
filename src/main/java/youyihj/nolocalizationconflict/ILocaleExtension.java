@@ -9,6 +9,4 @@ public interface ILocaleExtension {
     String getCurrentModifyingMod();
 
     Locale getSelf();
-
-    boolean isEnglish();
 }
