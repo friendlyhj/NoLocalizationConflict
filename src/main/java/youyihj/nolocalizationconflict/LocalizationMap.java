@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
  */
 public class LocalizationMap extends AbstractMap<String, String> {
     private final ILocaleExtension locale;
-    private final Map<String, LanguageEntry> english = new HashMap<>();
     private final Map<String, LanguageEntry> localization = new HashMap<>();
 
     public LocalizationMap(ILocaleExtension locale) {
@@ -17,17 +16,15 @@ public class LocalizationMap extends AbstractMap<String, String> {
 
     public LocalizationMap copy() {
         LocalizationMap copy = new LocalizationMap(locale);
-        copy.english.putAll(this.english);
         copy.localization.putAll(this.localization);
         return copy;
     }
 
     @Override
     public String put(String key, String value) {
-        Map<String, LanguageEntry> entries = locale.isEnglish() ? english : localization;
-        LanguageEntry entry = entries.get(key);
+        LanguageEntry entry = localization.get(key);
         if (entry == null) {
-            entries.put(key, new LanguageEntry(value, locale.getCurrentModifyingMod()));
+            localization.put(key, new LanguageEntry(value, locale.getCurrentModifyingMod()));
             return null;
         } else {
             entry.put(value, locale.getCurrentModifyingMod());
@@ -37,20 +34,17 @@ public class LocalizationMap extends AbstractMap<String, String> {
 
     @Override
     public void clear() {
-        english.clear();
         localization.clear();
     }
 
     @Override
     public String get(Object k) {
         LanguageEntry entry = localization.get(k);
-        if (entry == null) entry = english.get(k);
         return entry == null ? null : entry.get();
     }
 
     public String getValueExplicitMod(String key, String mod) {
         LanguageEntry entry = localization.get(key);
-        if (entry == null) entry = english.get(key);
         return entry == null ? null : entry.get(mod);
     }
 
