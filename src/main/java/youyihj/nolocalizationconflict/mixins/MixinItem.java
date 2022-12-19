@@ -20,7 +20,8 @@ public abstract class MixinItem {
     @Inject(method = "getItemStackDisplayName", at = @At(value = "HEAD"), cancellable = true)
     public void getNameBasedOnDomain(ItemStack stack, CallbackInfoReturnable<String> cir) {
         Map<String, String> languageList = LanguageMap.getInstance().languageList;
-        String key = stack.getItem().getUnlocalizedNameInefficiently(stack) + ".name";
+        Item item = stack.isEmpty() ? ((Item) ((Object) this)) : stack.getItem();
+        String key = item.getUnlocalizedNameInefficiently(stack) + ".name";
         String value;
         if (languageList instanceof LocalizationMap) {
             value = ((LocalizationMap) languageList).getValueExplicitMod(key, stack.getItem().getRegistryName().getResourceDomain());
