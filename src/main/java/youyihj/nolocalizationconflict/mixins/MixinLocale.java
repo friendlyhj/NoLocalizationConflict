@@ -4,14 +4,16 @@ import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.Locale;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import youyihj.nolocalizationconflict.ILocaleExtension;
 import youyihj.nolocalizationconflict.LocalizationMap;
 
-import java.io.InputStream;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,31 +25,29 @@ public abstract class MixinLocale implements ILocaleExtension {
     @Shadow
     Map<String, String> properties;
 
-    private String currentModifyingMod;
+    @Unique
+    private String nlc$currentModifyingMod;
 
     @Inject(method = "<init>", at = @At(value = "RETURN"))
     private void setProperties(CallbackInfo ci) {
         properties = new LocalizationMap(this);
     }
 
-    @Redirect(method = "loadLocaleDataFiles", at = @At(value = "INVOKE", target = "Ljava/lang/String;format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;"))
-    private String setLanguage(String s, Object[] objects) {
-        return String.format(s, objects);
-    }
-
-    @Redirect(method = "loadLocaleData(Ljava/util/List;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/IResource;getInputStream()Ljava/io/InputStream;"))
-    private InputStream setCurrentModifyingMod(IResource instance) {
-        currentModifyingMod = instance.getResourceLocation().getResourceDomain();
-        return instance.getInputStream();
+    @Inject(method = "loadLocaleData(Ljava/util/List;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/IResource;getInputStream()Ljava/io/InputStream;"),
+            locals = LocalCapture.CAPTURE_FAILHARD
+    )
+    private void setCurrentModifyingMod(List<IResource> resourcesList, CallbackInfo ci, Iterator<IResource> resourceIterator, IResource resource) {
+        nlc$currentModifyingMod = resource.getResourceLocation().getResourceDomain();
     }
 
     @Override
-    public Locale getSelf() {
+    public Locale nlc$getSelf() {
         return ((Locale) ((Object) this));
     }
 
     @Override
-    public String getCurrentModifyingMod() {
-        return currentModifyingMod;
+    public String nlc$getCurrentModifyingMod() {
+        return nlc$currentModifyingMod;
     }
 }

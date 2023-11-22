@@ -24,10 +24,10 @@ public class LocalizationMap extends AbstractMap<String, String> {
     public String put(String key, String value) {
         LanguageEntry entry = localization.get(key);
         if (entry == null) {
-            localization.put(key, new LanguageEntry(value, locale.getCurrentModifyingMod()));
+            localization.put(key, new LanguageEntry(value, locale.nlc$getCurrentModifyingMod()));
             return null;
         } else {
-            entry.put(value, locale.getCurrentModifyingMod());
+            entry.put(value, locale.nlc$getCurrentModifyingMod());
             return entry.getDefaultValue();
         }
     }
